@@ -1,0 +1,170 @@
+/* Крок 2. Базовий reset */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* Крок 3. Базова типографіка */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    background-color: #f3e8ff; /* світло-фіолетовий фон сторінки */
+    color: #2e1065; /* найтемніший фіолетовий для тексту */
+}
+
+/* Крок 4. Стилізація header */
+header {
+    background: linear-gradient(135deg, #7e22ce, #9333ea); /* фіолетовий градієнт */
+    padding: 24px;
+    border-bottom: 4px solid #eab308; /* жовтий акцент */
+}
+
+header h1 {
+    font-size: 2.2rem;
+    color: #fef08a; /* жовтий колір заголовку */
+    margin: 0 0 16px 0;
+    text-align: center;
+}
+
+header nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+
+header nav ul li {
+    margin-right: 24px;
+}
+
+header nav ul li:last-child {
+    margin-right: 0;
+}
+
+header nav ul li a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+header nav ul li a:hover {
+    background-color: #eab308;
+    color: #4c1d95;
+}
+
+/* Крок 5. Стилізація main і section */
+main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 16px;
+}
+
+section {
+    margin-bottom: 32px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(107, 33, 168, 0.1);
+}
+
+/* Картка поточного питання */
+section[id="поточне питання"] {
+    padding: 32px; /* великий padding (32px) */
+    text-align: center; /* центрований текст */
+    /* border-radius 12px застосовано в загальному селекторі section */
+}
+
+section[id="поточне питання"] h2 {
+    color: #6b21a8;
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+section[id="поточне питання"] p {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 24px;
+}
+
+ul[id="варіанти відповідей"] {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Варіанти відповідей (кнопки) */
+.варіант {
+    width: 100%;
+    max-width: 400px;
+    padding: 12px; /* padding 12px */
+    margin-bottom: 8px; /* margin-bottom 8px між ними */
+    border-radius: 6px; /* border-radius 6px */
+    background-color: #f3e8ff; /* легкий фіолетовий фон */
+    border: 2px solid #d8b4fe;
+    color: #4c1d95;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.варіант:hover {
+    background-color: #fef08a; /* hover-ефект зміни фону на жовтий */
+    border-color: #eab308;
+    color: #7e22ce;
+}
+
+/* Стилізація історії спроб */
+section[id="історія спроб"] {
+    padding: 24px;
+}
+
+section[id="історія спроб"] h2 {
+    color: #6b21a8;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Крок 6. Стилізувати картки (article) - Картки історії спроб */
+article {
+    padding: 10px; /* компактніші, padding 10px */
+    margin-bottom: 12px;
+    background-color: #faf5ff;
+    border: 1px solid #e9d5ff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(107, 33, 168, 0.05);
+}
+
+article:last-child {
+    margin-bottom: 0;
+}
+
+article h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #581c87;
+    text-align: center;
+}
+
+/* Крок 7. Стилізувати footer */
+footer {
+    background-color: #2e1065;
+    padding: 20px;
+    margin-top: 40px;
+    text-align: center;
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.875rem; /* менший розмір шрифту */
+    color: #d8b4fe; /* приглушений колір тексту */
+}
