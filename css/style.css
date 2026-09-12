@@ -73,31 +73,37 @@ section {
 }
 
 /* Картка поточного питання */
-section[id="поточне питання"] {
+section#поточне_питання {
     padding: 32px; /* великий padding (32px) */
     text-align: center; /* центрований текст */
     /* border-radius 12px застосовано в загальному селекторі section */
 }
 
-section[id="поточне питання"] h2 {
+section#поточне_питання h2 {
     color: #6b21a8;
     margin-top: 0;
     margin-bottom: 12px;
 }
 
-section[id="поточне питання"] p {
+section#поточне_питання p {
     font-size: 1.2rem;
     font-weight: 500;
     margin-bottom: 24px;
 }
 
-ul[id="варіанти відповідей"] {
+ul#варіанти_відповідей {
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+ul#варіанти_відповідей li {
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 /* Варіанти відповідей (кнопки) */
@@ -123,11 +129,11 @@ ul[id="варіанти відповідей"] {
 }
 
 /* Стилізація історії спроб */
-section[id="історія спроб"] {
+section#історія_спроб {
     padding: 24px;
 }
 
-section[id="історія спроб"] h2 {
+section#історія_спроб h2 {
     color: #6b21a8;
     margin-top: 0;
     margin-bottom: 20px;
