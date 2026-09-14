@@ -1,29 +1,38 @@
-/* Крок 2. Базовий reset */
 *, *::before, *::after {
     box-sizing: border-box;
 }
 
-/* Крок 3. Базова типографіка */
+/* Крок 7. Обмежити ширину зображень */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
 body {
     margin: 0;
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size: 1rem;
     line-height: 1.6;
-    background-color: #f3e8ff; /* світло-фіолетовий фон сторінки */
-    color: #2e1065; /* найтемніший фіолетовий для тексту */
+    background-color: #f3e8ff;
+    color: #2e1065;
 }
 
-/* Крок 4. Стилізація header */
+/* Крок 2. Перевести навігацію на Flexbox */
+/* Крок 4. Написати мобільні (базові) стилі */
 header {
-    background: linear-gradient(135deg, #7e22ce, #9333ea); /* фіолетовий градієнт */
+    background: linear-gradient(135deg, #7e22ce, #9333ea);
     padding: 24px;
-    border-bottom: 4px solid #eab308; /* жовтий акцент */
+    border-bottom: 4px solid #eab308;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
 }
 
 header h1 {
     font-size: 2.2rem;
-    color: #fef08a; /* жовтий колір заголовку */
-    margin: 0 0 16px 0;
+    color: #fef08a;
+    margin: 0;
     text-align: center;
 }
 
@@ -32,15 +41,12 @@ header nav ul {
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
 }
 
 header nav ul li {
-    margin-right: 24px;
-}
-
-header nav ul li:last-child {
-    margin-right: 0;
 }
 
 header nav ul li a {
@@ -58,7 +64,6 @@ header nav ul li a:hover {
     color: #4c1d95;
 }
 
-/* Крок 5. Стилізація main і section */
 main {
     max-width: 800px;
     margin: 0 auto;
@@ -72,11 +77,9 @@ section {
     box-shadow: 0 4px 12px rgba(107, 33, 168, 0.1);
 }
 
-/* Картка поточного питання */
 section#поточне_питання {
-    padding: 32px; /* великий padding (32px) */
-    text-align: center; /* центрований текст */
-    /* border-radius 12px застосовано в загальному селекторі section */
+    padding: 32px;
+    text-align: center;
 }
 
 section#поточне_питання h2 {
@@ -106,14 +109,13 @@ ul#варіанти_відповідей li {
     justify-content: center;
 }
 
-/* Варіанти відповідей (кнопки) */
 .варіант {
     width: 100%;
     max-width: 400px;
-    padding: 12px; /* padding 12px */
-    margin-bottom: 8px; /* margin-bottom 8px між ними */
-    border-radius: 6px; /* border-radius 6px */
-    background-color: #f3e8ff; /* легкий фіолетовий фон */
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    background-color: #f3e8ff;
     border: 2px solid #d8b4fe;
     color: #4c1d95;
     font-size: 1rem;
@@ -123,12 +125,11 @@ ul#варіанти_відповідей li {
 }
 
 .варіант:hover {
-    background-color: #fef08a; /* hover-ефект зміни фону на жовтий */
+    background-color: #fef08a;
     border-color: #eab308;
     color: #7e22ce;
 }
 
-/* Стилізація історії спроб */
 section#історія_спроб {
     padding: 24px;
 }
@@ -140,18 +141,19 @@ section#історія_спроб h2 {
     text-align: center;
 }
 
-/* Крок 6. Стилізувати картки (article) - Картки історії спроб */
+/* Крок 3. Перевести галерею карток на Grid */
+.cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
 article {
-    padding: 10px; /* компактніші, padding 10px */
-    margin-bottom: 12px;
+    padding: 10px;
     background-color: #faf5ff;
     border: 1px solid #e9d5ff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(107, 33, 168, 0.05);
-}
-
-article:last-child {
-    margin-bottom: 0;
 }
 
 article h3 {
@@ -161,7 +163,6 @@ article h3 {
     text-align: center;
 }
 
-/* Крок 7. Стилізувати footer */
 footer {
     background-color: #2e1065;
     padding: 20px;
@@ -171,6 +172,41 @@ footer {
 
 footer p {
     margin: 0;
-    font-size: 0.875rem; /* менший розмір шрифту */
-    color: #d8b4fe; /* приглушений колір тексту */
+    font-size: 0.875rem;
+    color: #d8b4fe;
+}
+
+/* Крок 5. Додати медіа-запит для планшета */
+@media (min-width: 600px) {
+    header {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    header nav ul {
+        flex-direction: row;
+        gap: 24px;
+    }
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Крок 6. Додати медіа-запит для десктопа */
+@media (min-width: 1024px) {
+    main {
+        max-width: 1000px;
+        padding: 48px 24px;
+    }
+
+    section#поточне_питання {
+        max-width: 700px;
+        margin: 0 auto 32px auto; /* відцентрування та відступ знизу */
+    }
+
+    .cards {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
 }
