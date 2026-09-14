@@ -1,8 +1,49 @@
+:root {
+    /* Крок 3: Колірна схема. 
+       Семантичні кольори для відображення правильних та неправильних відповідей. 
+       Контраст цих кольорів до їх фону становить понад 4.5:1. */
+    --color-correct-text: #15803d;
+    --color-correct-bg: #dcfce7;
+    --color-correct-border: #15803d;
+
+    --color-incorrect-text: #b91c1c;
+    --color-incorrect-bg: #fee2e2;
+    --color-incorrect-border: #b91c1c;
+
+    /* Базові кольори додатку */
+    --color-primary: #6b21a8;
+    --color-primary-hover: #581c87;
+    --color-bg-page: #f3e8ff;
+    --color-bg-card: #ffffff;
+    --color-text-main: #1f2937;
+    
+    /* Додаткові акценти для поточного дизайну */
+    --color-header-gradient-1: #7e22ce;
+    --color-header-gradient-2: #9333ea;
+    --color-accent-yellow: #fef08a;
+    --color-accent-yellow-dark: #eab308;
+
+    /* Крок 4: Типографіка. Шкала розмірів та шрифти */
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    
+    --text-base-size: 1rem;       /* 16px - для основного тексту */
+    --text-base-lh: 1.6;
+    
+    --text-h1-size: 2.25rem;      /* 36px */
+    --text-h1-lh: 1.2;
+    
+    --text-h2-size: 1.75rem;      /* 28px */
+    --text-h2-lh: 1.3;
+    
+    --text-h3-size: 1.25rem;      /* 20px */
+    --text-h3-lh: 1.4;
+}
+
 *, *::before, *::after {
     box-sizing: border-box;
 }
 
-/* Крок 7. Обмежити ширину зображень */
 img {
     max-width: 100%;
     height: auto;
@@ -10,19 +51,24 @@ img {
 
 body {
     margin: 0;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size: 1rem;
-    line-height: 1.6;
-    background-color: #f3e8ff;
-    color: #2e1065;
+    /* Крок 4: Застосування шрифту для основного тексту та базових розмірів */
+    font-family: var(--font-body);
+    font-size: var(--text-base-size);
+    line-height: var(--text-base-lh);
+    background-color: var(--color-bg-page);
+    color: var(--color-text-main);
 }
 
-/* Крок 2. Перевести навігацію на Flexbox */
-/* Крок 4. Написати мобільні (базові) стилі */
+/* Крок 4: Застосування шрифту для всіх заголовків */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+}
+
 header {
-    background: linear-gradient(135deg, #7e22ce, #9333ea);
+    background: linear-gradient(135deg, var(--color-header-gradient-1), var(--color-header-gradient-2));
     padding: 24px;
-    border-bottom: 4px solid #eab308;
+    border-bottom: 4px solid var(--color-accent-yellow-dark);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -30,8 +76,10 @@ header {
 }
 
 header h1 {
-    font-size: 2.2rem;
-    color: #fef08a;
+    /* Крок 4: Розмір h1 */
+    font-size: var(--text-h1-size);
+    line-height: var(--text-h1-lh);
+    color: var(--color-accent-yellow);
     margin: 0;
     text-align: center;
 }
@@ -46,9 +94,6 @@ header nav ul {
     align-items: center;
 }
 
-header nav ul li {
-}
-
 header nav ul li a {
     color: #ffffff;
     text-decoration: none;
@@ -60,8 +105,8 @@ header nav ul li a {
 }
 
 header nav ul li a:hover {
-    background-color: #eab308;
-    color: #4c1d95;
+    background-color: var(--color-accent-yellow-dark);
+    color: var(--color-primary);
 }
 
 main {
@@ -72,7 +117,7 @@ main {
 
 section {
     margin-bottom: 32px;
-    background-color: #ffffff;
+    background-color: var(--color-bg-card);
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(107, 33, 168, 0.1);
 }
@@ -82,16 +127,51 @@ section#поточне_питання {
     text-align: center;
 }
 
-section#поточне_питання h2 {
-    color: #6b21a8;
+/*
+ * Крок 7: Реалізація нечіткої вимоги ("проходження квізу має бути захопливим").
+ * Для того, щоб користувач відчував прогрес та отримував задоволення від проходження (гейміфікація), 
+ * було додано великий акцентний номер питання та візуальний прогрес-індикатор. Це мотивує пройти 
+ * тест до кінця. Стан виділення (.selected) для варіантів відповідей забезпечує сильний контраст, 
+ * дозволяючи користувачеві чітко бачити свій вибір ще до того, як система покаже результат.
+ */
+.quiz-progress-header {
+    margin-bottom: 24px;
+}
+
+.question-number {
+    font-size: 2rem; /* Великий виразний номер поточного питання */
+    line-height: 1.2;
+    color: var(--color-primary);
     margin-top: 0;
     margin-bottom: 12px;
 }
 
-section#поточне_питання p {
-    font-size: 1.2rem;
+.total-questions {
+    font-size: 1.25rem;
+    color: #6b7280; /* Додатковий колір для тексту, щоб номер питання виділявся більше */
     font-weight: 500;
-    margin-bottom: 24px;
+    margin-left: 4px;
+}
+
+.progress-bar-track {
+    width: 100%;
+    height: 12px;
+    background-color: #e9d5ff; /* Світло-фіолетовий трек */
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--color-accent-yellow-dark); /* Яскравий індикатор прогресу */
+    border-radius: 6px;
+    transition: width 0.4s ease;
+}
+
+section#поточне_питання p {
+    font-size: 1.2rem; /* Трохи збільшений розмір для тексту питання */
+    font-weight: 500;
+    margin-bottom: 32px; /* Крок 6: Більше простору між питанням та кнопками */
 }
 
 ul#варіанти_відповідей {
@@ -101,6 +181,7 @@ ul#варіанти_відповідей {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 16px; /* Крок 6: Використання gap замість margin для списків */
 }
 
 ul#варіанти_відповідей li {
@@ -112,44 +193,69 @@ ul#варіанти_відповідей li {
 .варіант {
     width: 100%;
     max-width: 400px;
-    padding: 12px;
-    margin-bottom: 8px;
-    border-radius: 6px;
-    background-color: #f3e8ff;
+    padding: 16px 24px; /* Крок 6: Збільшено padding, щоб кнопки були масивнішими */
+    border-radius: 8px; /* Крок 6: Злегка збільшено заокруглення */
+    background-color: var(--color-bg-page);
     border: 2px solid #d8b4fe;
-    color: #4c1d95;
+    color: var(--color-primary);
+    font-family: var(--font-body); /* Крок 4: Кнопки теж використовують базовий шрифт */
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s, border-color 0.3s;
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s, transform 0.1s; /* Додано transform для мікроанімації */
 }
 
 .варіант:hover {
-    background-color: #fef08a;
-    border-color: #eab308;
-    color: #7e22ce;
+    background-color: var(--color-accent-yellow);
+    border-color: var(--color-accent-yellow-dark);
+    color: var(--color-primary-hover);
+    transform: translateY(-2px); /* Крок 6: Мікроанімація при наведенні для інтерактивності */
+}
+
+/* Крок 7: Чіткий контраст обраного варіанта (до підтвердження) */
+.варіант.selected {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #ffffff;
+    transform: scale(1.02); /* Злегка збільшуємо для виразності */
+    box-shadow: 0 4px 12px rgba(107, 33, 168, 0.3);
+}
+
+/* Стилі для станів відповідей відповідно до вибраної колірної схеми */
+.варіант.correct {
+    background-color: var(--color-correct-bg);
+    border-color: var(--color-correct-border);
+    color: var(--color-correct-text);
+}
+
+.варіант.incorrect {
+    background-color: var(--color-incorrect-bg);
+    border-color: var(--color-incorrect-border);
+    color: var(--color-incorrect-text);
 }
 
 section#історія_спроб {
-    padding: 24px;
+    padding: 32px; /* Крок 6: Уніфікація padding (тепер такий самий, як у секції питання) */
 }
 
 section#історія_спроб h2 {
-    color: #6b21a8;
+    /* Крок 4: Розмір h2 */
+    font-size: var(--text-h2-size);
+    line-height: var(--text-h2-lh);
+    color: var(--color-primary);
     margin-top: 0;
-    margin-bottom: 20px;
+    margin-bottom: 32px; /* Крок 6: Більший відступ для візуального відділення заголовка від карток */
     text-align: center;
 }
 
-/* Крок 3. Перевести галерею карток на Grid */
 .cards {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 20px; /* Крок 6: Збільшено відстань між картками, щоб вони не злипалися */
 }
 
 article {
-    padding: 10px;
+    padding: 16px; /* Крок 6: Більше «повітря» всередині карток */
     background-color: #faf5ff;
     border: 1px solid #e9d5ff;
     border-radius: 8px;
@@ -157,9 +263,11 @@ article {
 }
 
 article h3 {
+    /* Крок 4: Розмір h3 */
+    font-size: var(--text-h3-size);
+    line-height: var(--text-h3-lh);
     margin: 0;
-    font-size: 1rem;
-    color: #581c87;
+    color: var(--color-primary-hover);
     text-align: center;
 }
 
@@ -176,7 +284,6 @@ footer p {
     color: #d8b4fe;
 }
 
-/* Крок 5. Додати медіа-запит для планшета */
 @media (min-width: 600px) {
     header {
         flex-direction: row;
@@ -193,7 +300,6 @@ footer p {
     }
 }
 
-/* Крок 6. Додати медіа-запит для десктопа */
 @media (min-width: 1024px) {
     main {
         max-width: 1000px;
@@ -202,11 +308,11 @@ footer p {
 
     section#поточне_питання {
         max-width: 700px;
-        margin: 0 auto 32px auto; /* відцентрування та відступ знизу */
+        margin: 0 auto 32px auto;
     }
 
     .cards {
         grid-template-columns: repeat(3, 1fr);
-        gap: 24px;
+        gap: 32px; /* Крок 6: Ще більший gap на десктопі для спільної сітки */
     }
 }
