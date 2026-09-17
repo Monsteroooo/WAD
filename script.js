@@ -1,5 +1,11 @@
 console.log('script.js підключено');
 
+const staticExample = document.querySelector('#questions-list li');
+if (staticExample) {
+    staticExample.remove();
+}
+
+
 const quizQuestions = [
     {
         id: 1,
@@ -23,6 +29,37 @@ const quizQuestions = [
         userAnswer: "Дніпро"
     }
 ];
+
+const listContainer = document.querySelector('#questions-list');
+
+/**
+ * Функція для динамічного рендеру списку питань.
+ * Проходить по переданому масиву даних, створює для кожного питання 
+ * HTML-елемент <li> з відповідними атрибутами та класами,
+ * після чого додає його у загальний контейнер на сторінці.
+ */
+function renderQuestions(questionsArray) {
+    questionsArray.forEach((questionData) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = questionData.question;
+        
+        // Додаємо клас .варіант для базової стилізації
+        listItem.classList.add('варіант');
+        
+        listItem.dataset.answer = questionData.correctAnswer;
+        if (questionData.userAnswer !== "") {
+            listItem.classList.add('answered');
+        }
+        listContainer.append(listItem);
+    });
+
+    const countElement = document.querySelector('#questions-count');
+    if (countElement) {
+        countElement.textContent = `Загальна кількість питань: ${questionsArray.length}`;
+    }
+}
+
+renderQuestions(quizQuestions);
 
 // Функція перевіряє відповідь користувача та повертає результат (правильно чи помилка)
 const checkAnswer = (userAnswer, correctAnswer) => {

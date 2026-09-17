@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script src="script.js" defer></script>
 </head>
 <body>
     <header>
@@ -22,19 +23,16 @@
 
     <main>
         <section id="поточне_питання">
-            <!-- Крок 7: Реалізація великого номера питання та прогрес-індикатора -->
             <div class="quiz-progress-header">
-                <h2 class="question-number">Питання 1<span class="total-questions">/10</span></h2>
-                <div class="progress-bar-track">
+                <h2 class="question-number">Список питань</h2>
+                <p id="questions-count">Загальна кількість питань: 0</p>
+                <div class="progress-bar-track" role="progressbar" aria-label="Прогрес вікторини" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100">
                     <div class="progress-bar-fill" style="width: 10%;"></div>
                 </div>
             </div>
-            <p id="питання_текст">Яке місто є столицею України?</p>
-            <ul id="варіанти_відповідей">
-                <li><button class="варіант">Київ</button></li>
-                <li><button class="варіант">Львів</button></li>
-                <li><button class="варіант">Одеса</button></li>
-                <li><button class="варіант">Харків</button></li>
+            
+            <ul id="questions-list">
+                <li class="answered" data-answer="Київ">Яке місто є столицею України?</li>
             </ul>
         </section>
         <section id="історія_спроб">
