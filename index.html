@@ -31,6 +31,8 @@
                 </div>
             </div>
             
+            <div id="api-status-message" class="result-message" aria-live="polite"></div>
+
             <form id="quiz-form">
                 <fieldset class="options-group">
                     <legend class="sr-only">Варіанти відповідей</legend>
@@ -61,6 +63,7 @@
                 <div class="form-actions">
                     <button type="submit" id="submit-btn" class="btn btn-primary">Відповісти</button>
                     <button type="button" id="next-btn" class="btn btn-secondary">Наступне питання</button>
+                    <button type="button" id="refresh-btn" class="btn btn-secondary">Оновити питання</button>
                 </div>
             </form>
         </section>

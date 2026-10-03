@@ -1,45 +1,120 @@
 console.log('script.js підключено');
 
-const quizQuestions = [
-    {
-        id: 1,
-        question: "Яке місто є столицею України?",
-        options: ["Київ", "Львів", "Одеса", "Харків"],
-        correctAnswer: "Київ",
-        userAnswer: ""
-    },
-    {
-        id: 2,
-        question: "Скільки планет у Сонячній системі?",
-        options: ["7", "8", "9", "10"],
-        correctAnswer: "8",
-        userAnswer: ""
-    },
-    {
-        id: 3,
-        question: "Яка найбільша річка в Україні?",
-        options: ["Дністер", "Десна", "Дніпро", "Південний Буг"],
-        correctAnswer: "Дніпро",
-        userAnswer: ""
-    }
-];
+// Константа URL для завантаження 10 питань з Open Trivia Database API
+const API_URL = 'https://opentdb.com/api.php?amount=10&type=multiple';
 
+// Глобальні змінні стану вікторини
+let quizQuestions = [];
 let currentQuestionIndex = 0;
 let isAnswerSubmitted = false;
 
-const quizForm = document.querySelector('#quiz-form');
+// Елементи DOM для управління формою та елементами інтерфейсу
+const apiStatusMessage = document.querySelector('#api-status-message');
+const submitBtn = document.querySelector('#submit-btn');
+const refreshBtn = document.querySelector('#refresh-btn');
 const nextBtn = document.querySelector('#next-btn');
+const quizForm = document.querySelector('#quiz-form');
 const questionTitle = document.querySelector('#question-title');
 const questionText = document.querySelector('#question-text');
 const progressFill = document.querySelector('#progress-fill');
 const resultMessage = document.querySelector('#result-message');
+const listContainer = document.querySelector('#questions-list');
+
+/**
+ * Розкодовує HTML-сутності (&quot;, &#039;, &amp; тощо) у звичайний текст
+ * @param {string} html 
+ * @returns {string}
+ */
+function decodeHTML(html) {
+    const txt = document.createElement('textarea');
+    txt.innerHTML = html;
+    return txt.value;
+}
+
+/**
+ * Перемішує елементи масиву за допомогою алгоритму Фішера-Єйтса
+ * @param {Array} array 
+ * @returns {Array}
+ */
+function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+/**
+ * Асинхронно завантажує питання з Open Trivia Database API
+ * Використаний API: https://opentdb.com/api.php?amount=10&type=multiple
+ */
+async function loadData() {
+    if (apiStatusMessage) {
+        apiStatusMessage.textContent = 'Завантаження питань з сервера...';
+        apiStatusMessage.className = 'result-message active info';
+    }
+    if (submitBtn) submitBtn.disabled = true;
+    if (refreshBtn) refreshBtn.disabled = true;
+
+    try {
+        const response = await fetch(API_URL);
+        
+        if (!response.ok) {
+            throw new Error(`Помилка мережі: HTTP статус ${response.status} (${response.statusText})`);
+        }
+
+        const data = await response.json();
+        console.log('[DevTools] Отримані дані від OpenTDB API:', data);
+
+        if (data.response_code !== 0 || !Array.isArray(data.results) || data.results.length === 0) {
+            throw new Error('API повернув некоректний код відповіді або порожній список питань');
+        }
+
+        quizQuestions = data.results.map((item, index) => {
+            const decodedQuestion = decodeHTML(item.question);
+            const decodedCorrect = decodeHTML(item.correct_answer);
+            const decodedIncorrect = item.incorrect_answers.map(decodeHTML);
+            const allOptions = shuffleArray([decodedCorrect, ...decodedIncorrect]);
+
+            return {
+                id: index + 1,
+                question: decodedQuestion,
+                options: allOptions,
+                correctAnswer: decodedCorrect,
+                userAnswer: ''
+            };
+        });
+
+        currentQuestionIndex = 0;
+        if (quizForm) quizForm.reset();
+        renderCurrentQuestion();
+        renderQuestions(quizQuestions);
+
+        if (apiStatusMessage) {
+            apiStatusMessage.textContent = '';
+            apiStatusMessage.className = 'result-message';
+        }
+    } catch (error) {
+        console.error('[API Error] Помилка завантаження даних:', error);
+
+        if (apiStatusMessage) {
+            apiStatusMessage.textContent = 'Не вдалося завантажити питання. Перевірте з\'єднання з інтернетом або спробуйте пізніше.';
+            apiStatusMessage.className = 'result-message active error';
+        }
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (refreshBtn) refreshBtn.disabled = false;
+    }
+}
 
 /**
  * Відображає поточне питання з масиву у формі HTML та оновлює елементи інтерфейсу
  */
 function renderCurrentQuestion() {
-    const currentQuestion = quizQuestions[currentQuestionIndex];
+    if (!quizQuestions || quizQuestions.length === 0) return;
 
+    const currentQuestion = quizQuestions[currentQuestionIndex];
     isAnswerSubmitted = false;
 
     if (nextBtn) {
@@ -70,13 +145,19 @@ function renderCurrentQuestion() {
     }
 }
 
-renderCurrentQuestion();
+/**
+ * Обробник події 'click' на кнопці "Оновити питання" для повторного запиту
+ */
+if (refreshBtn) {
+    refreshBtn.addEventListener('click', function() {
+        loadData();
+    });
+}
 
 /**
- * Обробник події 'change' на радіокнопках для додаткової валідації полів
+ * Обробник події 'change' на радіокнопках для валідації вибраного варіанта
  */
 const radioInputs = quizForm ? quizForm.querySelectorAll('input[name="answer"]') : [];
-
 radioInputs.forEach((radioInput) => {
     radioInput.addEventListener('change', function() {
         radioInputs.forEach((r) => r.setCustomValidity(''));
@@ -85,18 +166,20 @@ radioInputs.forEach((radioInput) => {
 });
 
 /**
- * Обробник події 'submit' форми: скасовує перезавантаження, перевіряє обрану відповідь та відображає результат
+ * Обробник події 'submit' форми для перевірки відповіді та виведення результату
  */
 if (quizForm) {
     quizForm.addEventListener('submit', function(event) {
         event.preventDefault();
-        
+
+        if (!quizQuestions || quizQuestions.length === 0) return;
+
         const selectedValue = quizForm.elements['answer'].value;
         const chosenIndex = Number(selectedValue);
 
         const currentQuestion = quizQuestions[currentQuestionIndex];
         const correctIndex = currentQuestion.options.indexOf(currentQuestion.correctAnswer);
-        
+
         const isCorrect = (chosenIndex === correctIndex);
         const selectedAnswerText = currentQuestion.options[chosenIndex];
 
@@ -122,7 +205,7 @@ if (quizForm) {
 }
 
 /**
- * Обробник події 'click' на кнопці "Наступне питання": скидає стан форми та завантажує наступне питання
+ * Обробник події 'click' на кнопці "Наступне питання"
  */
 if (nextBtn) {
     nextBtn.addEventListener('click', function() {
@@ -140,8 +223,8 @@ if (nextBtn) {
 
 /**
  * Функція рендеру списку питань для сумісності з попередніми частинами практикуму
+ * @param {Array} questionsArray 
  */
-const listContainer = document.querySelector('#questions-list');
 function renderQuestions(questionsArray) {
     if (!listContainer) return;
     listContainer.innerHTML = '';
@@ -162,4 +245,5 @@ function renderQuestions(questionsArray) {
     }
 }
 
-renderQuestions(quizQuestions);
+// Початковий виклик асинхронного завантаження питань при відкритті сторінки
+loadData();
