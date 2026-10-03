@@ -22,8 +22,6 @@ const listContainer = document.querySelector('#questions-list');
 
 /**
  * Розкодовує HTML-сутності (&quot;, &#039;, &amp; тощо) у звичайний текст
- * @param {string} html 
- * @returns {string}
  */
 function decodeHTML(html) {
     const txt = document.createElement('textarea');
@@ -33,8 +31,6 @@ function decodeHTML(html) {
 
 /**
  * Перемішує елементи масиву за допомогою алгоритму Фішера-Єйтса
- * @param {Array} array 
- * @returns {Array}
  */
 function shuffleArray(array) {
     const arr = [...array];
