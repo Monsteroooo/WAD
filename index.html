@@ -8,6 +8,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<!-- React & ReactDOM CDN -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<!-- Babel Standalone (для компіляції JSX в браузері) -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="script.js" defer></script>
 </head>
 <body>
@@ -22,70 +27,12 @@
     </header>
 
     <main>
-        <section id="поточне_питання">
-            <div class="quiz-progress-header">
-                <h2 class="question-number" id="question-title">Питання 1</h2>
-                <p id="question-text">Яке місто є столицею України?</p>
-                <div class="progress-bar-track" role="progressbar" aria-label="Прогрес вікторини" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
-                    <div class="progress-bar-fill" id="progress-fill" style="width: 33%;"></div>
-                </div>
-            </div>
-            
-            <div id="api-status-message" class="result-message" aria-live="polite"></div>
-
-            <form id="quiz-form">
-                <fieldset class="options-group">
-                    <legend class="sr-only">Варіанти відповідей</legend>
-
-                    <div class="option-item">
-                        <input type="radio" id="option-0" name="answer" value="0" required>
-                        <label for="option-0">Київ</label>
-                    </div>
-
-                    <div class="option-item">
-                        <input type="radio" id="option-1" name="answer" value="1" required>
-                        <label for="option-1">Львів</label>
-                    </div>
-
-                    <div class="option-item">
-                        <input type="radio" id="option-2" name="answer" value="2" required>
-                        <label for="option-2">Одеса</label>
-                    </div>
-
-                    <div class="option-item">
-                        <input type="radio" id="option-3" name="answer" value="3" required>
-                        <label for="option-3">Харків</label>
-                    </div>
-                </fieldset>
-
-                <div id="result-message" class="result-message" aria-live="polite"></div>
-
-                <div class="form-actions">
-                    <button type="submit" id="submit-btn" class="btn btn-primary">Відповісти</button>
-                    <button type="button" id="next-btn" class="btn btn-secondary">Наступне питання</button>
-                    <button type="button" id="refresh-btn" class="btn btn-secondary">Оновити питання</button>
-                </div>
-            </form>
-        </section>
-        <section id="історія_спроб">
-            <h2>Історія спроб</h2>
-            <div class="cards">
-                <article>
-                    <h3>10.09.2026, Результат 8/10</h3>
-                </article>
-                <article>
-                    <h3>8.09.2026, Результат 7/10</h3>
-                </article>
-                <article>
-                    <h3>5.09.2026, Результат 9/10</h3>
-                </article>
-            </div>
-        </section>
+        <div id="root"></div>
     </main>
 
     <footer>
         <p>&copy; 2026 Вікторина. Даніч Володимир ІП-55</p>
     </footer>
-<script src="js/app.js"></script>
+<script type="text/babel" src="js/app.js"></script>
 </body>
 </html>

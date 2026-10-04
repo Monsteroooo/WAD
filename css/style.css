@@ -229,6 +229,18 @@ section#поточне_питання p {
     outline-offset: 2px;
 }
 
+.option-item.correct-option label {
+    background-color: var(--color-correct-bg) !important;
+    border-color: var(--color-correct-border) !important;
+    color: var(--color-correct-text) !important;
+}
+
+.option-item.incorrect-option label {
+    background-color: var(--color-incorrect-bg) !important;
+    border-color: var(--color-incorrect-border) !important;
+    color: var(--color-incorrect-text) !important;
+}
+
 .result-message {
     margin: 16px 0;
     font-weight: 600;
