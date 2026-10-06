@@ -355,6 +355,34 @@ article h3 {
     text-align: center;
 }
 
+/* Стилі для Canvas-таймера та його контейнера */
+.quiz-progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.quiz-progress-info {
+    flex: 1;
+}
+
+.timer-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(107, 33, 168, 0.15);
+    padding: 4px;
+}
+
+.timer-canvas {
+    display: block;
+    border-radius: 50%;
+}
+
 footer {
     background-color: #2e1065;
     padding: 20px;

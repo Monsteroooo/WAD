@@ -212,6 +212,166 @@ function shuffleArray(array) {
 }
 
 /**
+ * Малює кадр 2D Canvas-таймера (фонова дуга, зменшувана дуга відліку та текст часу або паузи)
+ * @param {CanvasRenderingContext2D} ctx - 2D-контекст полотна
+ * @param {number} remainingTime - Залишковий час у секундах
+ * @param {number} totalDuration - Початкова тривалість таймера у секундах
+ * @param {number} [width=120] - Ширина полотна у пікселях
+ * @param {number} [height=120] - Висота полотна у пікселях
+ * @param {boolean} [isPaused=false] - Прапорець стану паузи
+ */
+function drawTimerState(ctx, remainingTime, totalDuration, width = 120, height = 120, isPaused = false) {
+    if (!ctx) return;
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = 45;
+    const lineWidth = 10;
+
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#e9d5ff';
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+
+    const progress = Math.max(0, Math.min(1, remainingTime / totalDuration));
+    const startAngle = -Math.PI / 2;
+    const endAngle = startAngle + (progress * 2 * Math.PI);
+
+    let strokeColor = '#16a34a';
+    if (progress <= 0.25) {
+        strokeColor = '#dc2626';
+    } else if (progress <= 0.5) {
+        strokeColor = '#eab308';
+    }
+
+    if (isPaused) {
+        strokeColor = '#9333ea';
+    }
+
+    if (progress > 0) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = lineWidth;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+    }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    if (isPaused) {
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.fillStyle = '#6b21a8';
+        ctx.fillText('ПАУЗА', centerX, centerY);
+    } else {
+        const displaySeconds = Math.max(0, Math.ceil(remainingTime));
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillStyle = strokeColor;
+        ctx.fillText(`${displaySeconds}с`, centerX, centerY);
+    }
+}
+
+/**
+ * Анімований React-компонент Canvas-таймера зворотного відліку на основі requestAnimationFrame
+ * @param {Object} props
+ * @param {number} [props.duration=15] - Тривалість відліку у секундах
+ * @param {boolean} [props.isActive=true] - Чи активний таймер
+ * @param {boolean} [props.isPaused=false] - Чи перебуває таймер на паузі
+ * @param {any} [props.resetKey] - Ключ (індекс питання) для скидання відліку
+ * @param {Function} [props.onTimeUp] - Колбек при вичерпанні часу (0с)
+ */
+function QuizTimerCanvas({ duration = 15, isActive = true, isPaused = false, resetKey, onTimeUp }) {
+    const canvasRef = React.useRef(null);
+    const startTimeRef = React.useRef(null);
+    const animFrameRef = React.useRef(null);
+    const pausedAccumulatorRef = React.useRef(0);
+    const pauseStartRef = React.useRef(null);
+    const prevResetKeyRef = React.useRef(resetKey);
+
+    // Скидання початкового часу тільки при дійсному переході на нове питання (resetKey)
+    React.useEffect(() => {
+        if (prevResetKeyRef.current !== resetKey) {
+            prevResetKeyRef.current = resetKey;
+            startTimeRef.current = null;
+            pausedAccumulatorRef.current = 0;
+            pauseStartRef.current = null;
+        }
+    }, [resetKey]);
+
+    React.useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        if (!isActive) {
+            drawTimerState(ctx, 0, duration, canvas.width, canvas.height, false);
+            return;
+        }
+
+        // Цикл анімації requestAnimationFrame з точним збереженням часу при паузі
+        function renderFrame(timestamp) {
+            if (isPaused) {
+                if (!pauseStartRef.current) {
+                    pauseStartRef.current = timestamp;
+                }
+                const currentElapsed = ((pauseStartRef.current - (startTimeRef.current || timestamp)) - pausedAccumulatorRef.current) / 1000;
+                const remSeconds = Math.max(0, duration - currentElapsed);
+                drawTimerState(ctx, remSeconds, duration, canvas.width, canvas.height, true);
+                return;
+            }
+
+            if (pauseStartRef.current) {
+                pausedAccumulatorRef.current += (timestamp - pauseStartRef.current);
+                pauseStartRef.current = null;
+            }
+
+            if (!startTimeRef.current) {
+                startTimeRef.current = timestamp;
+            }
+
+            const totalElapsedSeconds = (timestamp - startTimeRef.current - pausedAccumulatorRef.current) / 1000;
+            const remainingSeconds = Math.max(0, duration - totalElapsedSeconds);
+
+            drawTimerState(ctx, remainingSeconds, duration, canvas.width, canvas.height, false);
+
+            if (remainingSeconds > 0 && isActive) {
+                animFrameRef.current = requestAnimationFrame(renderFrame);
+            } else if (remainingSeconds <= 0) {
+                if (onTimeUp) {
+                    onTimeUp();
+                }
+            }
+        }
+
+        animFrameRef.current = requestAnimationFrame(renderFrame);
+
+        return () => {
+            if (animFrameRef.current) {
+                cancelAnimationFrame(animFrameRef.current);
+            }
+        };
+    }, [duration, isActive, isPaused, onTimeUp]);
+
+    return (
+        <div className="timer-container">
+            <canvas
+                ref={canvasRef}
+                width={120}
+                height={120}
+                className="timer-canvas"
+                aria-label="Анімований таймер зворотного відліку"
+            >
+                Ваш браузер не підтримує елемент Canvas.
+            </canvas>
+        </div>
+    );
+}
+
+/**
  * Дочірній компонент для відображення питання та варіантів відповідей
  */
 function QuizQuestion({ question, options, correctIndex, selectedIndex, isSubmitted, onAnswer }) {
@@ -347,6 +507,26 @@ function App() {
         fetchQuestions();
     }, []);
 
+    const [isTimerPaused, setIsTimerPaused] = React.useState(false);
+
+    /**
+     * Фіксація вичерпання часу на відповідь (0 секунд)
+     */
+    const handleTimeUp = React.useCallback(() => {
+        setIsSubmitted((alreadySubmitted) => {
+            if (!alreadySubmitted) {
+                const currentQ = questions[currentIndex];
+                const correctAns = currentQ ? currentQ.correctAnswer : '';
+                setResultFeedback({
+                    type: 'error',
+                    message: `⏱ Час вичерпано! Ви не встигли відповісти. Правильна відповідь: "${correctAns}".`
+                });
+                return true;
+            }
+            return alreadySubmitted;
+        });
+    }, [questions, currentIndex]);
+
     const handleAnswerSelect = (index) => {
         if (!isSubmitted) {
             setSelectedIndex(index);
@@ -381,6 +561,7 @@ function App() {
             setCurrentIndex((prevIndex) => prevIndex + 1);
             setSelectedIndex(null);
             setIsSubmitted(false);
+            setIsTimerPaused(false);
             setResultFeedback(null);
         } else {
             setIsQuizFinished(true);
@@ -432,15 +613,25 @@ function App() {
                 {!isLoading && !error && !isQuizFinished && currentQ && (
                     <form onSubmit={handleSubmitAnswer}>
                         <div className="quiz-progress-header">
-                            <h2 className="question-number" id="question-title">
-                                Питання {currentIndex + 1} з {questions.length}
-                            </h2>
-                            <div className="progress-bar-track">
-                                <div
-                                    className="progress-bar-fill"
-                                    style={{ width: `${Math.round(((currentIndex + 1) / questions.length) * 100)}%` }}
-                                ></div>
+                            <div className="quiz-progress-info">
+                                <h2 className="question-number" id="question-title">
+                                    Питання {currentIndex + 1} з {questions.length}
+                                </h2>
+                                <div className="progress-bar-track">
+                                    <div
+                                        className="progress-bar-fill"
+                                        style={{ width: `${Math.round(((currentIndex + 1) / questions.length) * 100)}%` }}
+                                    ></div>
+                                </div>
                             </div>
+                            {/* Анімований Canvas-таймер зворотного відліку */}
+                            <QuizTimerCanvas
+                                duration={15}
+                                isActive={!isSubmitted}
+                                isPaused={isTimerPaused}
+                                resetKey={currentIndex}
+                                onTimeUp={handleTimeUp}
+                            />
                         </div>
 
                         <QuizQuestion
@@ -476,6 +667,18 @@ function App() {
                                     onClick={handleNextQuestion}
                                 >
                                     {currentIndex + 1 < questions.length ? 'Наступне питання' : 'Переглянути результати'}
+                                </button>
+                            )}
+
+                            {/* Кнопка паузи/відновлення анімаційного відліку */}
+                            {!isSubmitted && (
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => setIsTimerPaused((prev) => !prev)}
+                                    aria-label={isTimerPaused ? 'Продовжити таймер' : 'Поставити таймер на паузу'}
+                                >
+                                    {isTimerPaused ? '▶ Продовжити' : '⏸ Пауза'}
                                 </button>
                             )}
 
