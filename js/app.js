@@ -292,7 +292,6 @@ function QuizTimerCanvas({ duration = 15, isActive = true, isPaused = false, res
     const pauseStartRef = React.useRef(null);
     const prevResetKeyRef = React.useRef(resetKey);
 
-    // Скидання початкового часу тільки при дійсному переході на нове питання (resetKey)
     React.useEffect(() => {
         if (prevResetKeyRef.current !== resetKey) {
             prevResetKeyRef.current = resetKey;
@@ -312,7 +311,6 @@ function QuizTimerCanvas({ duration = 15, isActive = true, isPaused = false, res
             return;
         }
 
-        // Цикл анімації requestAnimationFrame з точним збереженням часу при паузі
         function renderFrame(timestamp) {
             if (isPaused) {
                 if (!pauseStartRef.current) {
@@ -415,10 +413,26 @@ function QuizQuestion({ question, options, correctIndex, selectedIndex, isSubmit
     );
 }
 
+
 /**
- * Головний React-компонент вікторини
+ * Стартова сторінка застосунку.
+ * Відображає привітання та кнопку для початку вікторини.
  */
-function App() {
+function HomePage() {
+    return (
+        <section style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <h2>Вітаємо у Вікторині!</h2>
+            <p style={{ fontSize: '1.2rem', marginBottom: '20px' }}>Перевірте свої знання у різних категоріях.</p>
+            <a href="#/quiz" className="btn btn-primary" data-link>Почати вікторину</a>
+        </section>
+    );
+}
+
+/**
+ * Сторінка вікторини.
+ * Завантажує питання з API, керує таймером, рахунком та зберігає результат у БД.
+ */
+function QuizPage() {
     const [questions, setQuestions] = React.useState([]);
     const [currentIndex, setCurrentIndex] = React.useState(0);
     const [score, setScore] = React.useState(0);
@@ -428,35 +442,7 @@ function App() {
     const [isQuizFinished, setIsQuizFinished] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
-    const [idbErrorMessage, setIdbErrorMessage] = React.useState(null);
-    const [history, setHistory] = React.useState([]);
-
-    /**
-     * Оновлює стан списку результатів даними із сховища IndexedDB та сортує на клієнті
-     */
-    const reloadHistoryFromIDB = async () => {
-        try {
-            await migrateFromLocalStorage();
-
-            const items = await getAllItems();
-            const sortedItems = [...items].sort((a, b) => (b.score - a.score) || (b.id - a.id));
-
-            setHistory(sortedItems);
-            saveToLocalStorage(sortedItems);
-            setIdbErrorMessage(null);
-        } catch (err) {
-            console.error('[IndexedDB Load Error]', err);
-            const userFriendlyMsg = `Увага: Не вдалося відкрити сховище IndexedDB (${err.message || 'Сховище заблоковано'}). Якщо ви у режимі приватного перегляду, дані зберігаються тимчасово у localStorage.`;
-            setIdbErrorMessage(userFriendlyMsg);
-            
-            const fallback = loadFromLocalStorage() || [];
-            setHistory(fallback);
-        }
-    };
-
-    React.useEffect(() => {
-        reloadHistoryFromIDB();
-    }, []);
+    const [isTimerPaused, setIsTimerPaused] = React.useState(false);
 
     const fetchQuestions = async () => {
         setIsLoading(true);
@@ -464,31 +450,23 @@ function App() {
         setIsQuizFinished(false);
         try {
             const response = await fetch('https://opentdb.com/api.php?amount=10&type=multiple');
-            if (!response.ok) {
-                throw new Error(`HTTP помилка: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP помилка: ${response.status}`);
             const data = await response.json();
-
-            if (data.response_code !== 0 || !Array.isArray(data.results)) {
-                throw new Error('API повернув порожній список питань');
-            }
+            if (data.response_code !== 0 || !Array.isArray(data.results)) throw new Error('API повернув порожній список');
 
             const formattedQuestions = data.results.map((item, index) => {
                 const decodedQuestion = decodeHTML(item.question);
                 const decodedCorrect = decodeHTML(item.correct_answer);
                 const decodedIncorrect = item.incorrect_answers.map(decodeHTML);
                 const allOptions = shuffleArray([decodedCorrect, ...decodedIncorrect]);
-                const correctIndex = allOptions.indexOf(decodedCorrect);
-
                 return {
                     id: index + 1,
                     question: decodedQuestion,
                     options: allOptions,
                     correctAnswer: decodedCorrect,
-                    correctIndex: correctIndex
+                    correctIndex: allOptions.indexOf(decodedCorrect)
                 };
             });
-
             setQuestions(formattedQuestions);
             setCurrentIndex(0);
             setScore(0);
@@ -496,30 +474,22 @@ function App() {
             setIsSubmitted(false);
             setResultFeedback(null);
         } catch (err) {
-            console.error('[API Error]', err);
-            setError('Не вдалося завантажити питання. Перевірте підключення до мережі.');
+            console.error(err);
+            setError('Помилка завантаження. Перевірте мережу.');
         } finally {
             setIsLoading(false);
         }
     };
 
-    React.useEffect(() => {
-        fetchQuestions();
-    }, []);
+    React.useEffect(() => { fetchQuestions(); }, []);
 
-    const [isTimerPaused, setIsTimerPaused] = React.useState(false);
-
-    /**
-     * Фіксація вичерпання часу на відповідь (0 секунд)
-     */
     const handleTimeUp = React.useCallback(() => {
         setIsSubmitted((alreadySubmitted) => {
             if (!alreadySubmitted) {
                 const currentQ = questions[currentIndex];
-                const correctAns = currentQ ? currentQ.correctAnswer : '';
                 setResultFeedback({
                     type: 'error',
-                    message: `⏱ Час вичерпано! Ви не встигли відповісти. Правильна відповідь: "${correctAns}".`
+                    message: `⏱ Час вичерпано! Правильна відповідь: "${currentQ ? currentQ.correctAnswer : ''}".`
                 });
                 return true;
             }
@@ -527,38 +497,25 @@ function App() {
         });
     }, [questions, currentIndex]);
 
-    const handleAnswerSelect = (index) => {
-        if (!isSubmitted) {
-            setSelectedIndex(index);
-        }
-    };
+    const handleAnswerSelect = (index) => { if (!isSubmitted) setSelectedIndex(index); };
 
     const handleSubmitAnswer = (e) => {
         e.preventDefault();
         if (selectedIndex === null || isSubmitted) return;
-
         const currentQ = questions[currentIndex];
         const isCorrect = selectedIndex === currentQ.correctIndex;
-
         setIsSubmitted(true);
-
         if (isCorrect) {
-            setScore((prevScore) => prevScore + 1);
-            setResultFeedback({
-                type: 'success',
-                message: `Правильно! "${currentQ.options[selectedIndex]}" — це вірна відповідь.`
-            });
+            setScore(prev => prev + 1);
+            setResultFeedback({ type: 'success', message: `Правильно!` });
         } else {
-            setResultFeedback({
-                type: 'error',
-                message: `Неправильно. Ви обрали "${currentQ.options[selectedIndex]}", а правильна відповідь: "${currentQ.correctAnswer}".`
-            });
+            setResultFeedback({ type: 'error', message: `Неправильно. Правильна відповідь: "${currentQ.correctAnswer}".` });
         }
     };
 
     const handleNextQuestion = async () => {
         if (currentIndex + 1 < questions.length) {
-            setCurrentIndex((prevIndex) => prevIndex + 1);
+            setCurrentIndex(prev => prev + 1);
             setSelectedIndex(null);
             setIsSubmitted(false);
             setIsTimerPaused(false);
@@ -568,153 +525,243 @@ function App() {
             const newRecord = createQuizResultRecord(score, questions.length);
             try {
                 await addItem(newRecord);
-            } catch (err) {
-                console.error('[AddItem Error]', err);
-            }
-            await reloadHistoryFromIDB();
+                window.location.hash = '/results';
+            } catch (err) { console.error(err); }
         }
-    };
-
-    const handleDeleteRecord = async (idToDelete) => {
-        try {
-            await deleteItem(idToDelete);
-        } catch (err) {
-            console.error('[DeleteItem Error]', err);
-        }
-        await reloadHistoryFromIDB();
     };
 
     const currentQ = questions[currentIndex];
 
     return (
-        <div>
-            {idbErrorMessage && (
-                <div className="result-message active error" style={{ marginBottom: '16px' }}>
-                    {idbErrorMessage}
-                </div>
-            )}
-
-            <section id="поточне_питання">
-                {isLoading && <div className="result-message active info">Завантаження питань з сервера...</div>}
-                {error && <div className="result-message active error">{error}</div>}
-
-                {!isLoading && !error && isQuizFinished && (
-                    <div style={{ textAlign: 'center' }}>
-                        <h2>Вікторину завершено! 🏆</h2>
-                        <p style={{ fontSize: '1.3rem' }}>
-                            Ваш підсумковий результат: <strong>{score} з {questions.length}</strong> правильних відповідей.
-                        </p>
-                        <button type="button" className="btn btn-primary" onClick={fetchQuestions}>
-                            Пройти ще раз
-                        </button>
+        <section id="поточне_питання">
+            {isLoading && <div className="result-message active info">Завантаження питань...</div>}
+            {error && <div className="result-message active error">{error}</div>}
+            {!isLoading && !error && !isQuizFinished && currentQ && (
+                <form onSubmit={handleSubmitAnswer}>
+                    <div className="quiz-progress-header">
+                        <div className="quiz-progress-info">
+                            <h2 className="question-number">Питання {currentIndex + 1} з {questions.length}</h2>
+                            <div className="progress-bar-track">
+                                <div className="progress-bar-fill" style={{ width: `${Math.round(((currentIndex + 1) / questions.length) * 100)}%` }}></div>
+                            </div>
+                        </div>
+                        <QuizTimerCanvas duration={15} isActive={!isSubmitted} isPaused={isTimerPaused} resetKey={currentIndex} onTimeUp={handleTimeUp} />
                     </div>
-                )}
-
-                {!isLoading && !error && !isQuizFinished && currentQ && (
-                    <form onSubmit={handleSubmitAnswer}>
-                        <div className="quiz-progress-header">
-                            <div className="quiz-progress-info">
-                                <h2 className="question-number" id="question-title">
-                                    Питання {currentIndex + 1} з {questions.length}
-                                </h2>
-                                <div className="progress-bar-track">
-                                    <div
-                                        className="progress-bar-fill"
-                                        style={{ width: `${Math.round(((currentIndex + 1) / questions.length) * 100)}%` }}
-                                    ></div>
-                                </div>
-                            </div>
-                            {/* Анімований Canvas-таймер зворотного відліку */}
-                            <QuizTimerCanvas
-                                duration={15}
-                                isActive={!isSubmitted}
-                                isPaused={isTimerPaused}
-                                resetKey={currentIndex}
-                                onTimeUp={handleTimeUp}
-                            />
-                        </div>
-
-                        <QuizQuestion
-                            question={currentQ.question}
-                            options={currentQ.options}
-                            correctIndex={currentQ.correctIndex}
-                            selectedIndex={selectedIndex}
-                            isSubmitted={isSubmitted}
-                            onAnswer={handleAnswerSelect}
-                        />
-
-                        {resultFeedback && (
-                            <div className={`result-message active ${resultFeedback.type}`}>
-                                {resultFeedback.message}
-                            </div>
+                    <QuizQuestion question={currentQ.question} options={currentQ.options} correctIndex={currentQ.correctIndex} selectedIndex={selectedIndex} isSubmitted={isSubmitted} onAnswer={handleAnswerSelect} />
+                    {resultFeedback && <div className={`result-message active ${resultFeedback.type}`}>{resultFeedback.message}</div>}
+                    <div className="form-actions">
+                        {!isSubmitted ? (
+                            <button type="submit" className="btn btn-primary" disabled={selectedIndex === null}>Відповісти</button>
+                        ) : (
+                            <button type="button" className="btn btn-primary" onClick={handleNextQuestion}>
+                                {currentIndex + 1 < questions.length ? 'Наступне' : 'Завершити'}
+                            </button>
                         )}
-
-                        <div className="form-actions">
-                            {!isSubmitted ? (
-                                <button
-                                    type="submit"
-                                    id="submit-btn"
-                                    className="btn btn-primary"
-                                    disabled={selectedIndex === null}
-                                >
-                                    Відповісти
-                                </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    id="next-btn"
-                                    className="btn btn-primary"
-                                    onClick={handleNextQuestion}
-                                >
-                                    {currentIndex + 1 < questions.length ? 'Наступне питання' : 'Переглянути результати'}
-                                </button>
-                            )}
-
-                            {/* Кнопка паузи/відновлення анімаційного відліку */}
-                            {!isSubmitted && (
-                                <button
-                                    type="button"
-                                    className="btn btn-secondary"
-                                    onClick={() => setIsTimerPaused((prev) => !prev)}
-                                    aria-label={isTimerPaused ? 'Продовжити таймер' : 'Поставити таймер на паузу'}
-                                >
-                                    {isTimerPaused ? '▶ Продовжити' : '⏸ Пауза'}
-                                </button>
-                            )}
-
-                            <button
-                                type="button"
-                                id="refresh-btn"
-                                className="btn btn-secondary"
-                                onClick={fetchQuestions}
-                            >
-                                Оновити питання
+                        {!isSubmitted && (
+                            <button type="button" className="btn btn-secondary" onClick={() => setIsTimerPaused(prev => !prev)}>
+                                {isTimerPaused ? 'Продовжити' : 'Пауза'}
                             </button>
-                        </div>
-                    </form>
-                )}
-            </section>
-
-            <section id="історія_спроб">
-                <h2>Історія та найкращі результати</h2>
-                <div className="cards">
-                    {history.map((item) => (
-                        <article key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                            <h3>{item.date}, Результат {item.score}/{item.total}</h3>
-                            <button
-                                type="button"
-                                className="btn btn-secondary"
-                                style={{ padding: '4px 12px', fontSize: '0.85rem' }}
-                                onClick={() => handleDeleteRecord(item.id)}
-                            >
-                                Видалити
-                            </button>
-                        </article>
-                    ))}
-                </div>
-            </section>
-        </div>
+                        )}
+                    </div>
+                </form>
+            )}
+        </section>
     );
+}
+
+/**
+ * Сторінка історії результатів.
+ * Завантажує всі збережені спроби з IndexedDB та виводить їх списком.
+ */
+function ResultsPage() {
+    const [history, setHistory] = React.useState([]);
+
+    const loadData = async () => {
+        try {
+            await migrateFromLocalStorage();
+            const items = await getAllItems();
+            setHistory([...items].sort((a, b) => (b.score - a.score) || (b.id - a.id)));
+        } catch (err) {
+            setHistory(loadFromLocalStorage() || []);
+        }
+    };
+
+    React.useEffect(() => { loadData(); }, []);
+
+    const handleDelete = async (id) => {
+        await deleteItem(id);
+        loadData();
+    };
+
+    return (
+        <section id="історія_спроб">
+            <h2>Історія результатів</h2>
+            <div className="cards">
+                {history.length === 0 ? <p>Історія порожня.</p> : history.map(item => (
+                    <article key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                        <h3>{item.date}, Результат {item.score}/{item.total}</h3>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <a href={`#/results/${item.id}`} className="btn btn-primary" style={{ padding: '4px 12px' }} data-link>Деталі</a>
+                            <button type="button" className="btn btn-secondary" style={{ padding: '4px 12px' }} onClick={() => handleDelete(item.id)}>Видалити</button>
+                        </div>
+                    </article>
+                ))}
+            </div>
+        </section>
+    );
+}
+
+/**
+ * Сторінка деталей результату.
+ * Знаходить конкретний запис за переданим ідентифікатором та відображає його детальну статистику.
+ */
+function ResultDetailsPage({ id }) {
+    const [record, setRecord] = React.useState(null);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchRecord = async () => {
+            try {
+                const items = await getAllItems();
+                const found = items.find(i => String(i.id) === String(id));
+                setRecord(found || null);
+            } catch (e) {
+                console.error('Помилка завантаження деталей:', e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchRecord();
+    }, [id]);
+
+    if (loading) {
+        return <p style={{textAlign: 'center', padding: '40px'}}>Завантаження...</p>;
+    }
+    
+    if (!record) {
+        return (
+            <section style={{ textAlign: 'center', padding: '40px' }}>
+                <h2>Запис не знайдено</h2>
+                <p>Можливо, він був видалений або ви перейшли за хибним посиланням.</p>
+                <a href="#/results" className="btn btn-primary" data-link style={{ marginTop: '20px', display: 'inline-block' }}>Повернутися до історії</a>
+            </section>
+        );
+    }
+
+    return (
+        <section style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <h2>Деталі спроби #{record.id}</h2>
+            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', maxWidth: '400px', margin: '20px auto', border: '1px solid #e2e8f0' }}>
+                <p style={{fontSize: '1.2rem', margin: '10px 0'}}><strong>Дата:</strong> {record.date}</p>
+                <p style={{fontSize: '1.2rem', margin: '10px 0'}}><strong>Відповідей:</strong> {record.score} з {record.total}</p>
+                <p style={{fontSize: '1.2rem', margin: '10px 0'}}><strong>Успішність:</strong> {Math.round((record.score / record.total) * 100)}%</p>
+            </div>
+            <a href="#/results" className="btn btn-secondary" data-link style={{ display: 'inline-block' }}>Назад до списку</a>
+        </section>
+    );
+}
+
+/**
+ * Таблиця маршрутів застосунку.
+ * Зіставляє шляхи (URL) з відповідними React-компонентами.
+ */
+const routes = [
+    { path: '/', component: HomePage },
+    { path: '/quiz', component: QuizPage },
+    { path: '/results', component: ResultsPage },
+    { path: '/results/:id', component: ResultDetailsPage }
+];
+
+/**
+ * Функція для пошуку відповідного маршруту за поточним шляхом.
+ * Аналізує динамічні параметри у URL та повертає знайдений компонент разом із параметрами.
+ */
+function matchRoute(path) {
+    for (const route of routes) {
+        const routeParts = route.path.split('/').filter(Boolean);
+        const pathParts = path.split('/').filter(Boolean);
+        if (routeParts.length !== pathParts.length) continue;
+        let match = true;
+        const params = {};
+        for (let i = 0; i < routeParts.length; i++) {
+            if (routeParts[i].startsWith(':')) {
+                params[routeParts[i].slice(1)] = pathParts[i];
+            } else if (routeParts[i] !== pathParts[i]) {
+                match = false;
+                break;
+            }
+        }
+        if (match) return { route, params };
+    }
+    return null;
+}
+
+/**
+ * Здійснює програмну клієнтську навігацію, змінюючи хеш браузера.
+ */
+function navigate(path) {
+    window.location.hash = path;
+}
+
+// Глобальний обробник подій для перехоплення кліків по внутрішніх посиланнях
+document.body.addEventListener('click', e => {
+    const link = e.target.closest('a[data-link]');
+    if (link) {
+        e.preventDefault();
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('#')) {
+            navigate(href.slice(1));
+        }
+    }
+});
+
+/**
+ * Сторінка обробки неіснуючих маршрутів (Помилка 404).
+ */
+function NotFoundPage() {
+    return (
+        <section style={{ textAlign: 'center', padding: '50px 20px' }}>
+            <h2 style={{ fontSize: '3rem', color: '#dc3545', marginBottom: '10px' }}>404</h2>
+            <p style={{ fontSize: '1.5rem', marginBottom: '20px' }}>Сторінку не знайдено</p>
+            <p style={{ marginBottom: '30px' }}>Схоже, ви перейшли за неправильним посиланням.</p>
+            <a href="#/" className="btn btn-primary" data-link>На головну</a>
+        </section>
+    );
+}
+
+/**
+ * Головний компонент-маршрутизатор застосунку.
+ * Відстежує зміни хешу браузера та динамічно відмальовує відповідну сторінку.
+ */
+function App() {
+    const [currentPath, setCurrentPath] = React.useState(window.location.hash.slice(1) || '/');
+
+    React.useEffect(() => {
+        const handleHashChange = () => {
+            let newPath = window.location.hash.slice(1);
+            if (!newPath) newPath = '/';
+            setCurrentPath(newPath);
+        };
+
+        window.addEventListener('hashchange', handleHashChange);
+        
+        if (!window.location.hash) {
+            window.location.hash = '/';
+        }
+
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, []);
+
+    const matched = matchRoute(currentPath);
+
+    if (!matched) {
+        return <NotFoundPage />;
+    }
+
+    const { route, params } = matched;
+    const Component = route.component;
+
+    return <Component {...params} />;
 }
 
 const rootElement = document.getElementById('root');
