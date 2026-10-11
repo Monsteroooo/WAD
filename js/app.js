@@ -449,18 +449,19 @@ function QuizPage() {
         setError(null);
         setIsQuizFinished(false);
         try {
-            const response = await fetch('https://opentdb.com/api.php?amount=10&type=multiple');
+            const response = await fetch('/api/questions');
             if (!response.ok) throw new Error(`HTTP помилка: ${response.status}`);
             const data = await response.json();
-            if (data.response_code !== 0 || !Array.isArray(data.results)) throw new Error('API повернув порожній список');
+            const rawQuestions = Array.isArray(data) ? data : (data.results || []);
+            if (!rawQuestions || rawQuestions.length === 0) throw new Error('API повернув порожній список');
 
-            const formattedQuestions = data.results.map((item, index) => {
+            const formattedQuestions = rawQuestions.map((item, index) => {
                 const decodedQuestion = decodeHTML(item.question);
                 const decodedCorrect = decodeHTML(item.correct_answer);
-                const decodedIncorrect = item.incorrect_answers.map(decodeHTML);
+                const decodedIncorrect = (item.incorrect_answers || []).map(decodeHTML);
                 const allOptions = shuffleArray([decodedCorrect, ...decodedIncorrect]);
                 return {
-                    id: index + 1,
+                    id: item.id || (index + 1),
                     question: decodedQuestion,
                     options: allOptions,
                     correctAnswer: decodedCorrect,
