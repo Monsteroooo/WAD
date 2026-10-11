@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "question": "Яка мова розмітки використовується для структури веб-сторінок?",
+    "correct_answer": "HTML",
+    "incorrect_answers": ["CSS", "JavaScript", "Python"]
+  },
+  {
+    "id": 2,
+    "question": "Яка властивість CSS використовується для зміни кольору фону елемента?",
+    "correct_answer": "background-color",
+    "incorrect_answers": ["color", "border-color", "fill-background"]
+  },
+  {
+    "id": 3,
+    "question": "Який хук React використовується для збереження та оновлення локального стану компонента?",
+    "correct_answer": "useState",
+    "incorrect_answers": ["useEffect", "useMemo", "useContext"]
+  },
+  {
+    "id": 4,
+    "question": "Який статус-код HTTP означає успішну відповідь сервера?",
+    "correct_answer": "200",
+    "incorrect_answers": ["404", "500", "301"]
+  },
+  {
+    "id": 5,
+    "question": "Яке клієнтське сховище підтримує роботу з транзакціями та великими обсягами структурованих даних?",
+    "correct_answer": "IndexedDB",
+    "incorrect_answers": ["localStorage", "sessionStorage", "Cookies"]
+  },
+  {
+    "id": 6,
+    "question": "Який метод об'єкта JSON перетворює валідний текстовий рядок JSON на JavaScript-об'єкт?",
+    "correct_answer": "JSON.parse()",
+    "incorrect_answers": ["JSON.stringify()", "JSON.toObject()", "JSON.decode()"]
+  },
+  {
+    "id": 7,
+    "question": "Який HTML5-елемент використовується для створення растрової 2D-графіки засобами JavaScript?",
+    "correct_answer": "<canvas>",
+    "incorrect_answers": ["<svg>", "<picture>", "<graphic>"]
+  },
+  {
+    "id": 8,
+    "question": "Яка браузерна функція забезпечує виконання анімації перед наступним перемальовуванням кадру?",
+    "correct_answer": "requestAnimationFrame",
+    "incorrect_answers": ["setInterval", "setTimeout", "setImmediate"]
+  }
+]

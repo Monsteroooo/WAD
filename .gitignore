@@ -1,5 +1,6 @@
 # Залежності Node.js
 node_modules/
+server/node_modules/
 
 # Логи налагодження
 npm-debug.log*
