@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "question": "Яка мова розмітки використовується для структури веб-сторінок?",
+    "question": "<img src=x onerror=\"alert('XSS')\"> Яка мова розмітки використовується для структури веб-сторінок?",
     "correct_answer": "HTML",
     "incorrect_answers": ["CSS", "JavaScript", "Python"]
   },

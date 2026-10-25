@@ -203,6 +203,30 @@ async function migrateFromLocalStorage() {
     }
 }
 
+/**
+ * Функція екранування спеціальних HTML-символів для захисту від XSS
+ * @param {string} str 
+ * @returns {string}
+ */
+function escapeHTML(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+/**
+ * Функція декодування HTML-сутностей (&quot;, &#039;, &amp; тощо) з отриманих даних API/сервера.
+ * Безпекове рішення:
+ * 1. Віртуальний елемент <textarea> створюється виключно в пам'яті та ніколи не монтується в DOM сторінки.
+ * 2. Тег <textarea> згідно зі специфікацією HTML трактує вміст як RCDATA (звичайний текст),
+ *    тому скрипти та обробники подій (onerror, onload) не активуються.
+ * 3. Отримане значення повертається через txt.value і в подальшому рендериться у React виключно через
+ *    безпечні текстові вузли (textContent), що гарантує повний захист від XSS-атак.
+ */
 function decodeHTML(html) {
     const txt = document.createElement('textarea');
     txt.innerHTML = html;
@@ -382,6 +406,7 @@ function QuizTimerCanvas({ duration = 15, isActive = true, isPaused = false, res
 function QuizQuestion({ question, options, correctIndex, selectedIndex, isSubmitted, onAnswer }) {
     return (
         <div className="quiz-question-box">
+            {/* Безпечний рендер тексту питання через textContent (автоматичне екранування в React) */}
             <p id="question-text">{question}</p>
 
             <fieldset className="options-group">
@@ -456,7 +481,11 @@ function QuizPage() {
         setError(null);
         setIsQuizFinished(false);
         try {
-            const response = await fetch('/api/questions');
+            let response = await fetch('/api/questions');
+            if (!response.ok) {
+                // Fallback для статичних серверів (Live Server на :8080 або GitHub Pages)
+                response = await fetch('./server/data/questions.json');
+            }
             if (!response.ok) throw new Error(`HTTP помилка: ${response.status}`);
             const data = await response.json();
             const rawQuestions = Array.isArray(data) ? data : (data.results || []);
