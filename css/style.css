@@ -188,6 +188,17 @@ footer p {
         gap: 24px;
     }
 
+    ul#варіанти_відповідей {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .варіант {
+        max-width: none;
+        margin-bottom: 0;
+    }
+
     .cards {
         grid-template-columns: repeat(2, 1fr);
     }
