@@ -234,6 +234,17 @@ ul#варіанти_відповідей li {
     color: var(--color-incorrect-text);
 }
 
+/* Текстовий індикатор стану відповіді (не дубльований лише кольором) */
+.варіант.correct::after {
+    content: " (Правильно)";
+    font-weight: 700;
+}
+
+.варіант.incorrect::after {
+    content: " (Неправильно)";
+    font-weight: 700;
+}
+
 section#історія_спроб {
     padding: 32px; /* Уніфікація padding (тепер такий самий, як у секції питання) */
 }
