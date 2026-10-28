@@ -26,7 +26,7 @@ const quizQuestions = [
 
 // Функція перевіряє відповідь користувача та повертає результат (правильно чи помилка)
 const checkAnswer = (userAnswer, correctAnswer) => {
-    return userAnswer === correctAnswer ? "Правильно ✅" : "Помилка ❌";
+    return userAnswer === correctAnswer ? "Правильно" : "Помилка";
 };
 
 // Функція обробляє масив питань через цикл for...of і виводить підсумкову інформацію в консоль
@@ -39,7 +39,7 @@ function analyzeQuizData(questions) {
         allCorrectAnswers.push(item.correctAnswer);
 
         let result = checkAnswer(item.userAnswer, item.correctAnswer);
-        console.log(`Питання ${item.id}: Ваша відповідь "${item.userAnswer}". Результат: ${result}`);
+        console.log(`Питання ${item.id} ("${item.question}"): Ваша відповідь "${item.userAnswer}". Результат: ${result}`);
     }
 
     console.log(`--- Підсумок вікторини ---`);
