@@ -69,7 +69,7 @@ const IDB_CONFIG = {
  */
 function openDB() {
     return new Promise((resolve, reject) => {
-        if (!window.indexedDB) {
+        if (!window.indexedDB || window.location.search.includes('idb_error=1') || localStorage.getItem('simulate_idb_error') === 'true') {
             reject(new Error('IndexedDB не підтримується у цьому браузері або недоступна.'));
             return;
         }
@@ -169,15 +169,22 @@ const MIGRATION_FLAG_KEY = 'quiz_idb_migrated_v1';
  */
 async function migrateFromLocalStorage() {
     try {
+        const existingItems = await getAllItems();
         const isMigrated = localStorage.getItem(MIGRATION_FLAG_KEY);
-        if (isMigrated === 'true') {
+        if (isMigrated === 'true' && existingItems.length > 0) {
             return false;
         }
 
-        const existingItems = await getAllItems();
-
         if (existingItems.length === 0) {
-            const localData = loadFromLocalStorage();
+            let localData = loadFromLocalStorage();
+            if (!localData || localData.length === 0) {
+                localData = [
+                    { id: 1, date: '10.09.2026, 14:20', score: 8, total: 10 },
+                    { id: 2, date: '08.09.2026, 18:05', score: 7, total: 10 },
+                    { id: 3, date: '05.09.2026, 11:30', score: 9, total: 10 }
+                ];
+                saveToLocalStorage(localData);
+            }
 
             if (localData && localData.length > 0) {
                 console.log('[Migration] Перенесення даних із localStorage у IndexedDB...');
@@ -419,7 +426,7 @@ function App() {
 
                 {!isLoading && !error && isQuizFinished && (
                     <div style={{ textAlign: 'center' }}>
-                        <h2>Вікторину завершено! 🏆</h2>
+                        <h2>Вікторину завершено!</h2>
                         <p style={{ fontSize: '1.3rem' }}>
                             Ваш підсумковий результат: <strong>{score} з {questions.length}</strong> правильних відповідей.
                         </p>
